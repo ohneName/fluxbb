@@ -792,14 +792,13 @@ function do_bbcode($text, $is_signature = false)
 	if (strpos($text, '[quote') !== false)
 	{
 		$text = preg_replace('%\[quote\]\s*%', '</p><div class="quotebox"><blockquote><div><p>', $text);
-		$text = preg_replace('%\[quote=(&quot;|&\#039;|"|\'|)(.*?)\\1\]%se', '"</p><div class=\"quotebox\"><cite>".str_replace(array(\'[\', \'\\"\'), array(\'&#91;\', \'"\'), \'$2\')." ".$lang_common[\'wrote\']."</cite><blockquote><div><p>"', $text);
+		$text = preg_replace_callback('%\[quote=(&quot;|&\#039;|"|\'|)(.*?)\\1\]%s', create_function('$matches', 'global $lang_common; return "</p><div class=\"quotebox\"><cite>".str_replace(array(\'[\', \'\\"\'), array(\'&#91;\', \'"\'), $matches[2])." ".$lang_common[\'wrote\']."</cite><blockquote><div><p>";'), $text);
 		$text = preg_replace('%\s*\[\/quote\]%S', '</p></div></blockquote></div><p>', $text);
 	}
-
 	if (!$is_signature)
 	{
-		$pattern[] = $re_list;
-		$replace[] = 'handle_list_tag(\'$2\', \'$1\')';
+		$pattern_callback[] = $re_list;
+		$replace_callback[] = 'handle_list_tag($matches[2], $matches[1])';
 	}
 
 	$pattern[] = '%\[b\](.*?)\[/b\]%ms';
@@ -824,49 +823,53 @@ function do_bbcode($text, $is_signature = false)
 
 	if (($is_signature && $pun_config['p_sig_img_tag'] == '1') || (!$is_signature && $pun_config['p_message_img_tag'] == '1'))
 	{
-		$pattern[] = '%\[img\]((ht|f)tps?://)([^\s<"]*?)\[/img\]%e';
-		$pattern[] = '%\[img=([^\[]*?)\]((ht|f)tps?://)([^\s<"]*?)\[/img\]%e';
+		$pattern_callback[] = '%\[img\]((ht|f)tps?://)([^\s<"]*?)\[/img\]%';
+		$pattern_callback[] = '%\[img=([^\[]*?)\]((ht|f)tps?://)([^\s<"]*?)\[/img\]%';
 		if ($is_signature)
 		{
-			$replace[] = 'handle_img_tag(\'$1$3\', true)';
-			$replace[] = 'handle_img_tag(\'$2$4\', true, \'$1\')';
+			$replace_callback[] = 'handle_img_tag($matches[1].$matches[3], true)';
+			$replace_callback[] = 'handle_img_tag($matches[2].$matches[4], true, $matches[1])';
 		}
 		else
 		{
-			$replace[] = 'handle_img_tag(\'$1$3\', false)';
-			$replace[] = 'handle_img_tag(\'$2$4\', false, \'$1\')';
+			$replace_callback[] = 'handle_img_tag($matches[1].$matches[3], false)';
+			$replace_callback[] = 'handle_img_tag($matches[2].$matches[4], false, $matches[1])';
 		}
 	}
 
-	$pattern[] = '%\[url\]([^\[]*?)\[/url\]%e';
-	$pattern[] = '%\[url=([^\[]+?)\](.*?)\[/url\]%e';
+	$pattern_callback[] = '%\[url\]([^\[]*?)\[/url\]%';
+	$pattern_callback[] = '%\[url=([^\[]+?)\](.*?)\[/url\]%';
 	$pattern[] = '%\[email\]([^\[]*?)\[/email\]%';
 	$pattern[] = '%\[email=([^\[]+?)\](.*?)\[/email\]%';
-	$pattern[] = '%\[topic\]([1-9]\d*)\[/topic\]%e';
-	$pattern[] = '%\[topic=([1-9]\d*)\](.*?)\[/topic\]%e';
-	$pattern[] = '%\[post\]([1-9]\d*)\[/post\]%e';
-	$pattern[] = '%\[post=([1-9]\d*)\](.*?)\[/post\]%e';
-	$pattern[] = '%\[forum\]([1-9]\d*)\[/forum\]%e';
-	$pattern[] = '%\[forum=([1-9]\d*)\](.*?)\[/forum\]%e';
-	$pattern[] = '%\[user\]([1-9]\d*)\[/user\]%e';
-	$pattern[] = '%\[user=([1-9]\d*)\](.*?)\[/user\]%e';
+	$pattern_callback[] = '%\[topic\]([1-9]\d*)\[/topic\]%';
+	$pattern_callback[] = '%\[topic=([1-9]\d*)\](.*?)\[/topic\]%';
+	$pattern_callback[] = '%\[post\]([1-9]\d*)\[/post\]%';
+	$pattern_callback[] = '%\[post=([1-9]\d*)\](.*?)\[/post\]%';
+	$pattern_callback[] = '%\[forum\]([1-9]\d*)\[/forum\]%';
+	$pattern_callback[] = '%\[forum=([1-9]\d*)\](.*?)\[/forum\]%';
+	$pattern_callback[] = '%\[user\]([1-9]\d*)\[/user\]%';
+	$pattern_callback[] = '%\[user=([1-9]\d*)\](.*?)\[/user\]%';
 
-	$replace[] = 'handle_url_tag(\'$1\')';
-	$replace[] = 'handle_url_tag(\'$1\', \'$2\')';
+	$replace_callback[] = 'handle_url_tag($matches[1])';
+	$replace_callback[] = 'handle_url_tag($matches[1], $matches[2])';
 	$replace[] = '<a href="mailto:$1">$1</a>';
 	$replace[] = '<a href="mailto:$1">$2</a>';
-	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?id=$1\')';
-	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?id=$1\', \'$2\')';
-	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?pid=$1#p$1\')';
-	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?pid=$1#p$1\', \'$2\')';
-	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewforum.php?id=$1\')';
-	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewforum.php?id=$1\', \'$2\')';
-	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/profile.php?id=$1\')';
-	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/profile.php?id=$1\', \'$2\')';
+	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?id=.$matches[1]\')';
+	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?id=.$matches[1],$matches[2]\')';
+	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?pid=.$matches[1].#p.$matches[1]\')';
+	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?pid=.$matches[1].#p.$matches[1],$matches[2]\')';
+	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewforum.php?id=.$matches[1]\')';
+	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewforum.php?id=.$matches[1],$matches[2]\')';
+	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/profile.php?id=.$matches[1]\')';
+	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/profile.php?id=.$matches[1],$matches[2]\')';
 
 	// This thing takes a while! :)
 	$text = preg_replace($pattern, $replace, $text);
-
+	$count = count($pattern_callback);
+	for($i = 0 ; $i < $count ; $i++)
+	{
+		$text = preg_replace_callback($pattern_callback[$i], create_function('$matches', 'return '.$replace_callback[$i].';'), $text);
+	}
 	return $text;
 }
 
@@ -877,8 +880,8 @@ function do_bbcode($text, $is_signature = false)
 function do_clickable($text)
 {
 	$text = ' '.$text;
-	$text = ucp_preg_replace_callback('%(?<=[\s\]\)])(<)?(\[)?(\()?([\'"]?)(https?|ftp|news){1}://([\p{L}\p{N}\-]+\.([\p{L}\p{N}\-]+\.)*[\p{L}\p{N}]+(:[0-9]+)?(/(?:[^\s\[]*[^\s.,?!\[;:-])?)?)\4(?(3)(\)))(?(2)(\]))(?(1)(>))(?![^\s]*\[/(?:url|img)\])%ui', 'stripslashes($matches[1].$matches[2].$matches[3].$matches[4]).handle_url_tag($matches[5]."://".$matches[6], $matches[5]."://".$matches[6], true).stripslashes($matches[4].$matches[10].$matches[11].$matches[12])', $text);
-	$text = ucp_preg_replace_callback('%(?<=[\s\]\)])(<)?(\[)?(\()?([\'"]?)(www|ftp)\.(([\p{L}\p{N}\-]+\.)+[\p{L}\p{N}]+(:[0-9]+)?(/(?:[^\s\[]*[^\s.,?!\[;:-])?)?)\4(?(3)(\)))(?(2)(\]))(?(1)(>))(?![^\s]*\[/(?:url|img)\])%ui','stripslashes($matches[1].$matches[2].$matches[3].$matches[4]).handle_url_tag($matches[5].".".$matches[6], $matches[5].".".$matches[6], true).stripslashes($matches[4].$matches[10].$matches[11].$matches[12])', $text);
+	$text = ucp_preg_replace('%(?<=[\s\]\)])(<)?(\[)?(\()?([\'"]?)(https?|ftp|news){1}://([\p{L}\p{N}\-]+\.([\p{L}\p{N}\-]+\.)*[\p{L}\p{N}]+(:[0-9]+)?(/(?:[^\s\[]*[^\s.,?!\[;:-])?)?)\4(?(3)(\)))(?(2)(\]))(?(1)(>))(?![^\s]*\[/(?:url|img)\])%ui', 'stripslashes($matches[1].$matches[2].$matches[3].$matches[4]).handle_url_tag($matches[5]."://".$matches[6], $matches[5]."://".$matches[6], true).stripslashes($matches[4].$matches[10].$matches[11].$matches[12])', $text, true);
+	$text = ucp_preg_replace('%(?<=[\s\]\)])(<)?(\[)?(\()?([\'"]?)(www|ftp)\.(([\p{L}\p{N}\-]+\.)+[\p{L}\p{N}]+(:[0-9]+)?(/(?:[^\s\[]*[^\s.,?!\[;:-])?)?)\4(?(3)(\)))(?(2)(\]))(?(1)(>))(?![^\s]*\[/(?:url|img)\])%ui','stripslashes($matches[1].$matches[2].$matches[3].$matches[4]).handle_url_tag($matches[5].".".$matches[6], $matches[5].".".$matches[6], true).stripslashes($matches[4].$matches[10].$matches[11].$matches[12])', $text, true);
 
 	return substr($text, 1);
 }
