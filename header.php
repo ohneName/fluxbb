@@ -146,6 +146,8 @@ function process_form(the_form)
 
 // JavaScript tricks for IE6 and older
 echo '<!--[if lte IE 6]><script type="text/javascript" src="style/imports/minmax.js"></script><![endif]-->'."\n";
+echo '<script type="text/javascript" src="http://ufen.skyirc.net/js/jQuery.js"></script>';
+echo '<script type="text/javascript" src="http://ufen.skyirc.net/js/serverStatus.js"></script>';
 
 if (isset($page_head))
 	echo implode("\n", $page_head)."\n";
