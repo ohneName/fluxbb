@@ -2,6 +2,7 @@
 /.project
 /.settings/
 /nbproject/
+/.idea/
 *.sublime-project
 /cache/cache_*.php
 /cache/*.cache

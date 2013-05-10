@@ -14,11 +14,20 @@
 <div id="brdheader" class="block">
 	<div class="box">
 		<div id="brdtitle" class="inbox">
-			<pun_title>
-			<pun_desc>
+			<div style="float: left;">
+				<pun_title>
+				<pun_desc>
+			</div>
+			<div style="float: right; text-align: right;">
+				<span id="statusServerStatus">Lade ...</span><br />
+				<span id="statusPlayerCount">Lade ...</span><br />
+				<div id="statusPlayers" style="text-align: right;"></div>
+			</div>
+
 		</div>
 		<pun_navlinks>
 		<pun_status>
+
 	</div>
 </div>
 
