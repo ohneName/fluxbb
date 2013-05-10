@@ -379,7 +379,7 @@ while ($cur_post = $db->fetch_assoc($result))
 			<div class="postfoot clearb">
 				<div class="postfootleft">
 					<?php if ($cur_post['poster_id'] > 1) echo '<p>'.$is_online.'</p>'; ?>
-					<?php if ($cur_post['poster_id'] > 1 && $cur_post['minecraft'] != '') echo '<div class="mcUserStatus"><input type="hidden" class="mcUser" value="'.$cur_post['minecraft'].'" /><span class="status"></span></div>'; ?>
+					<?php if ($cur_post['poster_id'] > 1 && $cur_post['minecraft'] != '') echo '<div class="mcUserStatus"><input type="hidden" class="mcUser" value="'.$cur_post['minecraft'].'" /><span class="status" style="font-weight: bold;"></span></div>'; ?>
 				</div>
 <?php if (count($post_actions)) echo "\t\t\t\t".'<div class="postfootright">'."\n\t\t\t\t\t".'<ul>'."\n\t\t\t\t\t\t".implode("\n\t\t\t\t\t\t", $post_actions)."\n\t\t\t\t\t".'</ul>'."\n\t\t\t\t".'</div>'."\n" ?>
 			</div>
