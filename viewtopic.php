@@ -361,7 +361,7 @@ while ($cur_post = $db->fetch_assoc($result))
 						<dt><strong><?php echo $username ?></strong></dt>
 						<dd class="usertitle"><strong><?php echo $user_title ?></strong></dd>
 <?php if ($user_avatar != '') echo "\t\t\t\t\t\t".'<dd class="postavatar">'.$user_avatar.'</dd>'."\n";
-elseif($cur_post['minecraft'] != '') echo "\t\t\t\t\t\t".'<dd class="postavatar"><img src="https://minotar.net/helm/'.$cur_post['username'].'/104.png"</dd>'."\n"; ?>
+elseif($cur_post['minecraft'] != '') echo "\t\t\t\t\t\t".'<dd class="postavatar"><img src="https://minotar.net/helm/'.$cur_post['minecraft'].'/104.png"</dd>'."\n"; ?>
 <?php if (count($user_info)) echo "\t\t\t\t\t\t".implode("\n\t\t\t\t\t\t", $user_info)."\n"; ?>
 <?php if (count($user_contacts)) echo "\t\t\t\t\t\t".'<dd class="usercontacts">'.implode(' ', $user_contacts).'</dd>'."\n"; ?>
 					</dl>
