@@ -816,7 +816,7 @@ else if (isset($_POST['form_sent']))
 
 			if ($pun_user['g_id'] == PUN_ADMIN) {
 				$form['title'] = pun_trim($_POST['title']);
-				$form['minecraft'] = pun_trim($_POST['minecraft']);
+				$form['minecraft'] = pun_trim($_POST['form']['minecraft']);
 			}
 			else if ($pun_user['g_set_title'] == '1')
 			{
