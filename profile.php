@@ -1127,6 +1127,13 @@ if ($pun_user['id'] != $id &&																	// If we aren't the user (i.e. edi
 			$user_personality[] = '<dt>'.$lang_profile['Avatar'].'</dt>';
 			$user_personality[] = '<dd>'.$avatar_field.'</dd>';
 		}
+
+	}
+	elseif($user['minecraft'] != '') {
+
+		$user_personality[] = '<dt>Minecraft Skin</dt>';
+		$user_personality[] = '<dd><img src="https://minotar.net/helm/'.$user['minecraft'].'/104.png" /></dd>';
+
 	}
 
 	if ($pun_config['o_signatures'] == '1')
