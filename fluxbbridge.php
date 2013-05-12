@@ -151,20 +151,29 @@ elseif(isset($_GET['action']) && $_GET['action'] == 'keyLink') {
 
 		if($result->num_rows == 1) {
 
-			$userName = $result->fetch_array()['username'];
+			$auth = false;
 
-			// Generate key
-			$pool = 'abcdef1234567890';
+			// Is this the right user?
+			if($pun_user['id'] == $_GET['id']) {
 
-			$key = '';
+				$auth = true;
 
-			for($i = 1; $i <= 6; $i++) {
-				$rand = substr(str_shuffle($pool), 0, 1);
-				$key .= $rand;
+				$userName = $result->fetch_array()['username'];
+
+				// Generate key
+				$pool = 'abcdef1234567890';
+
+				$key = '';
+
+				for($i = 1; $i <= 6; $i++) {
+					$rand = substr(str_shuffle($pool), 0, 1);
+					$key .= $rand;
+				}
+
+				// Write key to DB
+				$db->query('UPDATE `'.$db->prefix.'users` SET `token` = \''.$db->escape($key).'\' WHERE `id` = '.$db->escape($_GET['id']));
+
 			}
-
-			// Write key to DB
-			$db->query('UPDATE `'.$db->prefix.'users` SET `token` = \''.$db->escape($key).'\' WHERE `id` = '.$db->escape($_GET['id']));
 
 			?>
 
@@ -211,6 +220,7 @@ elseif(isset($_GET['action']) && $_GET['action'] == 'keyLink') {
 
 				</head>
 				<body>
+					<?php if($auth) { ?>
 					<div id="text">
 						Dein Schlüssel: <?=$key?>
 					</div>
@@ -218,6 +228,15 @@ elseif(isset($_GET['action']) && $_GET['action'] == 'keyLink') {
 					<div id="subtext">
 						Um ihn zu benutzen, gib <span class="tt">/forum <?=$userName?> <?=$key?></span> auf dem Server ein.
 					</div>
+					<?php } else { ?>
+					<div id="text">
+						Du bist nicht angemeldet.
+					</div>
+					<hr />
+					<div id="subtext">
+						Bitte logge dich zunächst im Forum ein, um deinen Schlüssel zu sehen. <a href="<?=$pun_config['o_base_url']?>">Zum Forum</a>
+					</div>
+					<?php } ?>
 				</body>
 			</html>
 			<?php
