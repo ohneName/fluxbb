@@ -8,6 +8,7 @@
 
 define('PUN_ROOT', dirname(__FILE__).'/');
 require PUN_ROOT.'include/common.php';
+require PUN_ROOT.'include/poll.php';
 
 
 if ($pun_user['g_read_board'] == '0')
@@ -158,6 +159,7 @@ if (isset($_POST['form_sent']))
 
 	$now = time();
 
+	poll_form_validate($tid, $errors);
 	// Did everything go according to plan?
 	if (empty($errors) && !isset($_POST['preview']))
 	{
@@ -309,6 +311,8 @@ if (isset($_POST['form_sent']))
 			update_search_index('post', $new_pid, $message, $subject);
 
 			update_forum($fid);
+
+			poll_save($new_tid);
 
 			// Should we send out notifications?
 			if ($pun_config['o_forum_subscriptions'] == '1')
@@ -593,6 +597,7 @@ else if (isset($_POST['preview']))
 				<div class="postright">
 					<div class="postmsg">
 						<?php echo $preview_message."\n" ?>
+						<?php if ($fid) poll_display_post($tid, $pun_user['id']); ?>
 					</div>
 				</div>
 			</div>
@@ -695,6 +700,7 @@ if (!empty($checkboxes))
 
 ?>
 			</div>
+			<?php poll_form_post($tid); ?>
 			<p class="buttons"><input type="submit" name="submit" value="<?php echo $lang_common['Submit'] ?>" tabindex="<?php echo $cur_index++ ?>" accesskey="s" /> <input type="submit" name="preview" value="<?php echo $lang_post['Preview'] ?>" tabindex="<?php echo $cur_index++ ?>" accesskey="p" /> <a href="javascript:history.go(-1)"><?php echo $lang_common['Go back'] ?></a></p>
 		</form>
 	</div>

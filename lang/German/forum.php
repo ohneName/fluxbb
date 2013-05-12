@@ -12,6 +12,7 @@ $lang_forum = array(
 'Mod controls'	=>	'Moderationsfunktionen',
 'Is subscribed'	=>	'Du hast dieses Forum abonniert',
 'Unsubscribe'	=>	'Abonnement abbestellen',
-'Subscribe'		=>	'Dieses Forum abonnieren'
+'Subscribe'		=>	'Dieses Forum abonnieren',
+'Poll'          =>  'Umfrage'
 
 );
