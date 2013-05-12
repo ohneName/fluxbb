@@ -35,7 +35,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'assign') {
 							if($result->num_rows == 0) {
 
 								// Everything's fine, write to the DB
-								$db->query('UPDATE `'.$db->prefix.'users` SET `token` = NULL, `minecraft` = \''.$db->escape($_GET['mcUser']).'\' WHERE `username` = \''.$db->escape($_GET['boardUser']).'\'');
+								$db->query('UPDATE `'.$db->prefix.'users` SET `group_id` = 5, `token` = NULL, `minecraft` = \''.$db->escape($_GET['mcUser']).'\' WHERE `username` = \''.$db->escape($_GET['boardUser']).'\'', true);
 
 								echo json_encode([
 									'status' => 'ok',
@@ -93,134 +93,130 @@ if(isset($_GET['action']) && $_GET['action'] == 'assign') {
 	}
 
 }
-elseif(isset($_GET['action']) && $_GET['action'] == 'keyLink') {
+elseif(isset($_GET['action']) && $_GET['action'] == 'keyLink' && !isset($_GET['id'])) {
 
-	if(!isset($_GET['id'])) {
+	// Check key
+	if(isset($_GET['key']) && $_GET['key'] == $fluxbBridgeKey) {
 
-		// Check key
-		if(isset($_GET['key']) && $_GET['key'] == $fluxbBridgeKey) {
+		// Check if user exists
+		if(isset($_GET['boardUser'])) {
 
-			// Check if user exists
-			if(isset($_GET['boardUser'])) {
+			$result = $db->query('SELECT * FROM `'.$db->prefix.'users` WHERE `username` = \''.$db->escape($_GET['boardUser']).'\'', true);
 
-				$result = $db->query('SELECT * FROM `'.$db->prefix.'users` WHERE `username` = \''.$db->escape($_GET['boardUser']).'\'', true);
+			if($result->num_rows == 1) {
 
-				if($result->num_rows == 1) {
-
-					// Generate link
-					echo json_encode([
-						'status' => 'ok',
-						'message' => $pun_config['o_base_url'].'fluxbbridge.php?action=keyLink&id='.$result->fetch_array()['id']
-					]);
-
-				}
-				else {
-
-					echo json_encode([
-						'status' => 'fail',
-						'message' => 'boardUser not existing'
-					]);
-
-				}
+				// Generate link
+				echo json_encode([
+					'status' => 'ok',
+					'message' => rtrim($pun_config['o_base_url'], '/').'/fluxbbridge.php?id='.$result->fetch_array()['id']
+				]);
 
 			}
 			else {
+
 				echo json_encode([
 					'status' => 'fail',
-					'message' => 'boardUser missing'
+					'message' => 'boardUser not existing'
 				]);
-			}
 
+			}
 
 		}
 		else {
-
 			echo json_encode([
 				'status' => 'fail',
-				'message' => 'key missing or wrong'
+				'message' => 'boardUser missing'
 			]);
-
 		}
+
+
+	}
+	else {
+
+		echo json_encode([
+			'status' => 'fail',
+			'message' => 'key missing or wrong'
+		]);
 
 	}
 
-	else {
+}
+elseif(isset($_GET['id'])) {
 
+	$result = $db->query('SELECT * FROM `'.$db->prefix.'users` WHERE `id` = \''.$db->escape($_GET['id']).'\'', true);
 
-		$result = $db->query('SELECT * FROM `'.$db->prefix.'users` WHERE `id` = \''.$db->escape($_GET['id']).'\'', true);
+	if($result->num_rows == 1) {
 
-		if($result->num_rows == 1) {
+		$auth = false;
 
-			$auth = false;
+		// Is this the right user?
+		if($pun_user['id'] == $_GET['id']) {
 
-			// Is this the right user?
-			if($pun_user['id'] == $_GET['id']) {
+			$auth = true;
 
-				$auth = true;
+			$userName = $result->fetch_array()['username'];
 
-				$userName = $result->fetch_array()['username'];
+			// Generate key
+			$pool = 'abcdef1234567890';
 
-				// Generate key
-				$pool = 'abcdef1234567890';
+			$key = '';
 
-				$key = '';
-
-				for($i = 1; $i <= 6; $i++) {
-					$rand = substr(str_shuffle($pool), 0, 1);
-					$key .= $rand;
-				}
-
-				// Write key to DB
-				$db->query('UPDATE `'.$db->prefix.'users` SET `token` = \''.$db->escape($key).'\' WHERE `id` = '.$db->escape($_GET['id']));
-
+			for($i = 1; $i <= 6; $i++) {
+				$rand = substr(str_shuffle($pool), 0, 1);
+				$key .= $rand;
 			}
 
-			?>
+			// Write key to DB
+			$db->query('UPDATE `'.$db->prefix.'users` SET `token` = \''.$db->escape($key).'\' WHERE `id` = '.$db->escape($_GET['id']));
 
-			<html>
-				<head>
-					<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-					<title>Dein Schlüssel</title>
-					<style type="text/css">
-						html, body {
-							margin: 0;
-							padding: 0;
-							background: #fafafa;
-							font-family: Arial, Helvetica, sans-serif;
-						}
+		}
 
-						div#text {
+		?>
 
-							font-weight: bold;
-							font-family: Arial, Helvetica, sans-serif;
-							font-size: 48px;
-							text-align: center;
-							margin-top: 15%;
+		<html>
+			<head>
+				<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+				<title>Dein Schlüssel</title>
+				<style type="text/css">
+					html, body {
+						margin: 0;
+						padding: 0;
+						background: #fafafa;
+						font-family: Arial, Helvetica, sans-serif;
+					}
 
-						}
-						div#subtext {
-							margin-top: 25px;
-							font-size: 14px;
-							text-align: center;
-						}
+					div#text {
 
-						hr {
-							height: 0;
-							border: none;
-							border-bottom: 1px solid rgb(200, 200, 200);
-						}
+						font-weight: bold;
+						font-family: Arial, Helvetica, sans-serif;
+						font-size: 48px;
+						text-align: center;
+						margin-top: 15%;
 
-						.tt {
-							display: inline;
-							padding: 0 2px;
-							background: rgb(250, 250, 250);
-							border: 1px solid rgb(230, 230, 230);
-						}
-					</style>
+					}
+					div#subtext {
+						margin-top: 25px;
+						font-size: 14px;
+						text-align: center;
+					}
 
-				</head>
-				<body>
-					<?php if($auth) { ?>
+					hr {
+						height: 0;
+						border: none;
+						border-bottom: 1px solid rgb(200, 200, 200);
+					}
+
+					.tt {
+						display: inline;
+						padding: 0 2px;
+						background: rgb(250, 250, 250);
+						border: 1px solid rgb(230, 230, 230);
+					}
+				</style>
+
+			</head>
+			<body>
+				<?php if($auth) { ?>
 					<div id="text">
 						Dein Schlüssel: <?=$key?>
 					</div>
@@ -228,7 +224,7 @@ elseif(isset($_GET['action']) && $_GET['action'] == 'keyLink') {
 					<div id="subtext">
 						Um ihn zu benutzen, gib <span class="tt">/forum <?=$userName?> <?=$key?></span> auf dem Server ein.
 					</div>
-					<?php } else { ?>
+				<?php } else { ?>
 					<div id="text">
 						Du bist nicht angemeldet.
 					</div>
@@ -236,12 +232,10 @@ elseif(isset($_GET['action']) && $_GET['action'] == 'keyLink') {
 					<div id="subtext">
 						Bitte logge dich zunächst im Forum ein, um deinen Schlüssel zu sehen. <a href="<?=$pun_config['o_base_url']?>">Zum Forum</a>
 					</div>
-					<?php } ?>
-				</body>
-			</html>
-			<?php
-
-		}
+				<?php } ?>
+			</body>
+		</html>
+	<?php
 
 	}
 
