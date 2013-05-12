@@ -814,8 +814,10 @@ else if (isset($_POST['form_sent']))
 				$form['url'] = '';
 			}
 
-			if ($pun_user['g_id'] == PUN_ADMIN)
+			if ($pun_user['g_id'] == PUN_ADMIN) {
 				$form['title'] = pun_trim($_POST['title']);
+				$form['minecraft'] = pun_trim($_POST['minecraft']);
+			}
 			else if ($pun_user['g_set_title'] == '1')
 			{
 				$form['title'] = pun_trim($_POST['title']);
@@ -1478,6 +1480,8 @@ else
 <?php if (isset($title_field)): ?>							<?php echo $title_field ?>
 <?php endif; ?>							<label><?php echo $lang_profile['Location'] ?><br /><input type="text" name="form[location]" value="<?php echo pun_htmlspecialchars($user['location']) ?>" size="30" maxlength="30" /><br /></label>
 <?php if ($pun_user['g_post_links'] == '1' || $pun_user['g_id'] == PUN_ADMIN) : ?>							<label><?php echo $lang_profile['Website'] ?><br /><input type="text" name="form[url]" value="<?php echo pun_htmlspecialchars($user['url']) ?>" size="50" maxlength="80" /><br /></label>
+<?php endif; ?>
+<?php if($pun_user['g_id'] == PUN_ADMIN): ?>							<label>Minecraft<br /><input type="text" name="form[minecraft]" value="<?php echo pun_htmlspecialchars($user['minecraft']) ?>" size="50" maxlength="80" /><br /></label>
 <?php endif; ?>
 						</div>
 					</fieldset>
