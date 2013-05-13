@@ -141,7 +141,7 @@ elseif(isset($_GET['action']) && $_GET['action'] == 'keyLink' && !isset($_GET['i
 	}
 
 }
-elseif(isset($_GET['action']) && $_GET['action'] == 'profileLink' && isset($_GET['mcUser'])) {
+elseif(isset($_GET['action']) && $_GET['action'] == 'profileLink') {
 
 
 	// Check if user exists
@@ -271,4 +271,7 @@ elseif(isset($_GET['id'])) {
 
 	}
 
+}
+else {
+	echo 'Nothing here, move along';
 }
