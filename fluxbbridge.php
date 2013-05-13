@@ -153,7 +153,8 @@ elseif(isset($_GET['action']) && $_GET['action'] == 'profileLink') {
 
 			echo json_encode([
 				'status' => 'ok',
-				'message' => rtrim($pun_config['o_base_url'], '/').'/profile.php?id='.$result->fetch_array()['id']
+				'message' => rtrim($pun_config['o_base_url'], '/').'/profile.php?id='.$result->fetch_array()['id'],
+				'boardUser' => $result->fetch_array()['username']
 			]);
 
 		}
