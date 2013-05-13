@@ -1482,6 +1482,7 @@ else
 <?php if ($pun_user['g_post_links'] == '1' || $pun_user['g_id'] == PUN_ADMIN) : ?>							<label><?php echo $lang_profile['Website'] ?><br /><input type="text" name="form[url]" value="<?php echo pun_htmlspecialchars($user['url']) ?>" size="50" maxlength="80" /><br /></label>
 <?php endif; ?>
 <?php if($pun_user['g_id'] == PUN_ADMIN): ?>							<label>Minecraft<br /><input type="text" name="form[minecraft]" value="<?php echo pun_htmlspecialchars($user['minecraft']) ?>" size="50" maxlength="80" /><br /></label>
+<?php else: ?>							<label>Minecraft Account (Benutze <span style="font-style: italic;">/forum</span> auf dem Server, um ihn zu ändern.)<br /><input type="text" disabled="disabled" value="<?php echo pun_htmlspecialchars($user['minecraft']) ?>" size="50" /><br /></label>
 <?php endif; ?>
 						</div>
 					</fieldset>
