@@ -141,6 +141,38 @@ elseif(isset($_GET['action']) && $_GET['action'] == 'keyLink' && !isset($_GET['i
 	}
 
 }
+elseif(isset($_GET['action']) && $_GET['action'] == 'profileLink' && isset($_GET['mcUser'])) {
+
+
+	// Check if user exists
+	if(isset($_GET['mcUser'])) {
+
+		$result = $db->query('SELECT * FROM `'.$db->prefix.'users` WHERE `minecraft` = \''.$db->escape($_GET['mcUser']).'\'', true);
+
+		if($result->num_rows == 1) {
+
+			echo json_encode([
+				'status' => 'ok',
+				'message' => rtrim($pun_config['o_base_url'], '/').'/profile.php?id='.$result->fetch_array()['id']
+			]);
+
+		}
+		else {
+			echo json_encode([
+				'status' => 'fail',
+				'message' => 'mcUser missing'
+			]);
+		}
+
+	}
+	else {
+		echo json_encode([
+			'status' => 'fail',
+			'message' => 'mcUser missing'
+		]);
+	}
+
+}
 elseif(isset($_GET['id'])) {
 
 	$result = $db->query('SELECT * FROM `'.$db->prefix.'users` WHERE `id` = \''.$db->escape($_GET['id']).'\'', true);
