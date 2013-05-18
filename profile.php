@@ -1065,7 +1065,7 @@ if ($pun_user['id'] != $id &&																	// If we aren't the user (i.e. edi
 	if ($user['minecraft'] != '')
 	{
 		$user_personal[] = '<dt>Minecraft Account</dt>';
-		$user_personal[] = '<dd>'.pun_htmlspecialchars(($pun_config['o_censoring'] == '1') ? censor_words($user['minecraft']) : $user['minecraft']).'</dd>';
+		$user_personal[] = '<dd>'.pun_htmlspecialchars(($pun_config['o_censoring'] == '1') ? censor_words($user['minecraft']) : $user['minecraft']).'<br /><span class="mcUserStatus"><input stlye="display: inline;" type="hidden" class="mcUser" value="'.$user['minecraft'].'" /><span class="status" style="font-weight: bold;"></span></span></dd>';
 	}
 
 	if ($user['url'] != '')
