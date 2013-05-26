@@ -253,7 +253,7 @@ function pun_mail($to, $subject, $message, $reply_to_email = '', $reply_to_name 
 	{
 		// Headers should be \r\n
 		// Message should be \n
-		mail($to, $subject, $message, $headers);
+		mail($to, $subject, $message, $headers, '-f '.$from_email);
 	}
 }
 
