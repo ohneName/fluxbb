@@ -93,6 +93,7 @@ if (!defined('PUN_ALLOW_INDEX'))
 ?>
 <title><?php echo generate_page_title($page_title, $p) ?></title>
 <link rel="stylesheet" type="text/css" href="style/<?php echo $pun_user['style'].'.css' ?>" />
+<script type="text/javascript" src="captcha/js/jquery-1.7.2.min.js"></script>
 <?php
 
 //BEGIN - FluxBB Jquery Captcha
@@ -103,7 +104,6 @@ if (!empty($enable_jquery_captcha)) {
 	?>
 	<link rel="stylesheet" type="text/css" href="captcha/css/style.css" />
 	<link rel="stylesheet" type="text/css" href="captcha/css/redmond/jquery-ui-1.8.21.custom.css" />
-	<script type="text/javascript" src="captcha/js/jquery-1.7.2.min.js"></script>
 	<script type="text/javascript" src="captcha/js/jquery-ui-1.8.21.custom.min.js"></script>
 	<script type="text/javascript" src="captcha/js/jquery.ui.touch-punch.min.js"></script>
 	<script type="text/javascript">
