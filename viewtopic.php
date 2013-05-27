@@ -23,6 +23,20 @@ if ($id < 1 && $pid < 1)
 // Load the viewtopic.php language file
 require PUN_ROOT.'lang/'.$pun_user['language'].'/topic.php';
 
+//BEGIN - FluxBB Jquery Captcha
+$enable_jquery_captcha = true;
+if (!$pun_user['is_guest'] OR array_key_exists('o_jquery_captcha_registration_page',$pun_config) AND $pun_config['o_jquery_captcha_registration_page'] == '0') {
+	$enable_jquery_captcha = false;
+}
+if ($enable_jquery_captcha) {
+	require_once PUN_ROOT.'include/captcha/functions.php';
+	$lang_jquery_captcha_file = PUN_ROOT.'lang/'.$pun_user['language'].'/jquery_captcha.php';
+	if (!file_exists($lang_jquery_captcha_file))
+		$lang_jquery_captcha_file = PUN_ROOT.'lang/English/jquery_captcha.php';
+	require_once $lang_jquery_captcha_file;
+}
+//END - FluxBB Jquery Captcha
+
 
 // If a post ID is specified we determine topic ID and page number so we can redirect to the correct message
 if ($pid)
@@ -472,7 +486,28 @@ else
 					</div>
 				</fieldset>
 			</div>
-			<p class="buttons"><input type="submit" name="submit" tabindex="<?php echo $cur_index++ ?>" value="<?php echo $lang_common['Submit'] ?>" accesskey="s" /> <input type="submit" name="preview" value="<?php echo $lang_topic['Preview'] ?>" tabindex="<?php echo $cur_index++ ?>" accesskey="p" /></p>
+			<?php
+			//BEGIN - FluxBB Jquery Captcha
+			if ($enable_jquery_captcha) {
+				?>
+				<div class="inform">
+					<fieldset>
+						<legend><?php echo $lang_jquery_captcha['Captcha legend']; ?></legend>
+						<div class="infldset">
+							<p><?php echo $lang_jquery_captcha['Captcha description']; ?></p>
+							<div class="rbox">
+								<div id="javascriptCaptcha"><?php echo $lang_jquery_captcha['Javascript disabled']; ?></div>
+								<div id="sliderCaptcha"></div>
+								<input type="hidden" id="cleCaptcha" name="cleCaptcha" value="<?php echo $_SESSION['captcha']->initToken(); ?>" />
+							</div>
+						</div>
+					</fieldset>
+				</div>
+			<?php
+			}
+			//END - FluxBB Jquery Captcha
+			?>
+			<p class="buttons"><input type="submit" name="submit" tabindex="<?php echo $cur_index++ ?>" value="<?php echo $lang_common['Submit'] ?>" accesskey="s" class="boutonsCaptcha" <?php if ($enable_jquery_captcha) echo 'disabled="disabled"'; ?> /> <input type="submit" name="preview" value="<?php echo $lang_topic['Preview'] ?>" tabindex="<?php echo $cur_index++ ?>" accesskey="p" class="boutonsCaptcha" <?php if ($enable_jquery_captcha) echo 'disabled="disabled"'; ?> /></p>
 		</form>
 	</div>
 </div>

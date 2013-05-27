@@ -53,6 +53,20 @@ if ((($tid && (($cur_posting['post_replies'] == '' && $pun_user['g_post_replies'
 // Load the post.php language file
 require PUN_ROOT.'lang/'.$pun_user['language'].'/post.php';
 
+//BEGIN - FluxBB Jquery Captcha
+$enable_jquery_captcha = true;
+if (!$pun_user['is_guest'] OR array_key_exists('o_jquery_captcha_forum_pages',$pun_config) AND $pun_config['o_jquery_captcha_forum_pages'] == '0') {
+	$enable_jquery_captcha = false;
+}
+if ($enable_jquery_captcha) {
+	require_once PUN_ROOT.'include/captcha/functions.php';
+	$lang_jquery_captcha_file = PUN_ROOT.'lang/'.$pun_user['language'].'/jquery_captcha.php';
+	if (!file_exists($lang_jquery_captcha_file))
+		$lang_jquery_captcha_file = PUN_ROOT.'lang/English/jquery_captcha.php';
+	require_once $lang_jquery_captcha_file;
+}
+//END - FluxBB Jquery Captcha
+
 // Start with a clean slate
 $errors = array();
 
@@ -156,6 +170,12 @@ if (isset($_POST['form_sent']))
 
 	// Replace four-byte characters (MySQL cannot handle them)
 	$message = strip_bad_multibyte_chars($message);
+
+	//BEGIN - FluxBB Jquery Captcha
+	if ($enable_jquery_captcha AND !$_SESSION['captcha']->validerCle()) {
+		$errors[] = $lang_jquery_captcha['Invalid captcha'];
+	}
+	//END - FluxBB Jquery Captcha
 
 	$now = time();
 
@@ -701,7 +721,29 @@ if (!empty($checkboxes))
 ?>
 			</div>
 			<?php poll_form_post($tid); ?>
-			<p class="buttons"><input type="submit" name="submit" value="<?php echo $lang_common['Submit'] ?>" tabindex="<?php echo $cur_index++ ?>" accesskey="s" /> <input type="submit" name="preview" value="<?php echo $lang_post['Preview'] ?>" tabindex="<?php echo $cur_index++ ?>" accesskey="p" /> <a href="javascript:history.go(-1)"><?php echo $lang_common['Go back'] ?></a></p>
+			<?php
+			//BEGIN - FluxBB Jquery Captcha
+			if ($enable_jquery_captcha) {
+				?>
+				<div class="inform">
+					<fieldset>
+						<legend><?php echo $lang_jquery_captcha['Captcha legend']; ?></legend>
+						<div class="infldset">
+							<p><?php echo $lang_jquery_captcha['Captcha description']; ?></p>
+							<div class="rbox">
+								<div id="javascriptCaptcha"><?php echo $lang_jquery_captcha['Javascript disabled']; ?></div>
+								<div id="sliderCaptcha"></div>
+								<input type="hidden" id="cleCaptcha" name="cleCaptcha" value="<?php echo $_SESSION['captcha']->initToken(); ?>" />
+							</div>
+						</div>
+					</fieldset>
+				</div>
+			<?php
+			}
+			//END - FluxBB Jquery Captcha
+			?>
+			<p class="buttons"><input type="submit" name="submit" value="<?php echo $lang_common['Submit'] ?>" tabindex="<?php echo $cur_index++ ?>" accesskey="s" class="boutonsCaptcha" <?php if ($enable_jquery_captcha) echo 'disabled="disabled"'; ?> /> <input type="submit" name="preview" value="<?php echo $lang_post['Preview'] ?>" tabindex="<?php echo $cur_index++ ?>" accesskey="p" class="boutonsCaptcha" <?php if ($enable_jquery_captcha) echo 'disabled="disabled"'; ?> /> <a href="javascript:history.go(-1)"><?php echo $lang_common['Go back'] ?></a></p>
+
 		</form>
 	</div>
 </div>

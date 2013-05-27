@@ -23,6 +23,20 @@ require PUN_ROOT.'lang/'.$pun_user['language'].'/register.php';
 // Load the register.php/profile.php language file
 require PUN_ROOT.'lang/'.$pun_user['language'].'/prof_reg.php';
 
+//BEGIN - FluxBB Jquery Captcha
+$enable_jquery_captcha = true;
+if (array_key_exists('o_jquery_captcha_registration_page',$pun_config) AND $pun_config['o_jquery_captcha_registration_page'] == '0') {
+	$enable_jquery_captcha = false;
+}
+if ($enable_jquery_captcha) {
+	require_once PUN_ROOT.'include/captcha/functions.php';
+	$lang_jquery_captcha_file = PUN_ROOT.'lang/'.$pun_user['language'].'/jquery_captcha.php';
+	if (!file_exists($lang_jquery_captcha_file))
+		$lang_jquery_captcha_file = PUN_ROOT.'lang/English/jquery_captcha.php';
+	require_once $lang_jquery_captcha_file;
+}
+//END - FluxBB Jquery Captcha
+
 if ($pun_config['o_regs_allow'] == '0')
 	message($lang_register['No new regs']);
 
@@ -145,6 +159,12 @@ if (isset($_POST['form_sent']))
 	$email_setting = intval($_POST['email_setting']);
 	if ($email_setting < 0 || $email_setting > 2)
 		$email_setting = $pun_config['o_default_email_setting'];
+
+	//BEGIN - FluxBB Jquery Captcha
+	if ($enable_jquery_captcha AND !$_SESSION['captcha']->validerCle()) {
+		$errors[] = $lang_jquery_captcha['Invalid captcha'];
+	}
+	//END - FluxBB Jquery Captcha
 
 	// Did everything go according to plan?
 	if (empty($errors))
@@ -427,7 +447,28 @@ if (!empty($errors))
 					</div>
 				</fieldset>
 			</div>
-			<p class="buttons"><input type="submit" name="register" value="<?php echo $lang_register['Register'] ?>" /></p>
+			<?php
+			//BEGIN - FluxBB Jquery Captcha
+			if ($enable_jquery_captcha) {
+				?>
+				<div class="inform">
+					<fieldset>
+						<legend><?php echo $lang_jquery_captcha['Captcha legend']; ?></legend>
+						<div class="infldset">
+							<p><?php echo $lang_jquery_captcha['Captcha description']; ?></p>
+							<div class="rbox">
+								<div id="javascriptCaptcha"><?php echo $lang_jquery_captcha['Javascript disabled']; ?></div>
+								<div id="sliderCaptcha"></div>
+								<input type="hidden" id="cleCaptcha" name="cleCaptcha" value="<?php echo $_SESSION['captcha']->initToken(); ?>" />
+							</div>
+						</div>
+					</fieldset>
+				</div>
+			<?php
+			}
+			//END - FluxBB Jquery Captcha
+			?>
+			<p class="buttons"><input type="submit" <?php if ($enable_jquery_captcha) echo 'class="boutonsCaptcha" disabled="disabled"'; ?> name="register" value="<?php echo $lang_register['Register'] ?>" /></p>
 		</form>
 	</div>
 </div>

@@ -95,6 +95,24 @@ if (!defined('PUN_ALLOW_INDEX'))
 <link rel="stylesheet" type="text/css" href="style/<?php echo $pun_user['style'].'.css' ?>" />
 <?php
 
+//BEGIN - FluxBB Jquery Captcha
+
+//Add CSS File and Javascript File for FluxBB Jquery Captcha
+if (!empty($enable_jquery_captcha)) {
+	require_once PUN_ROOT.'include/captcha/functions.php';
+	?>
+	<link rel="stylesheet" type="text/css" href="captcha/css/style.css" />
+	<link rel="stylesheet" type="text/css" href="captcha/css/redmond/jquery-ui-1.8.21.custom.css" />
+	<script type="text/javascript" src="captcha/js/jquery-1.7.2.min.js"></script>
+	<script type="text/javascript" src="captcha/js/jquery-ui-1.8.21.custom.min.js"></script>
+	<script type="text/javascript" src="captcha/js/jquery.ui.touch-punch.min.js"></script>
+	<script type="text/javascript">
+		$(function(){var f=$("#sliderCaptcha");var b=$("#cleCaptcha");var d=$(".boutonsCaptcha");var a=$("#javascriptCaptcha");var e=<?php echo $_SESSION['captcha']->formatterTableauDePermutation(); ?>;var h=0;var g=5;var c=0;a.hide();f.slider({value:0,min:0,max:g,step:1,slide:function(i,j){if(j.value>c){c=j.value;h+=c}},stop:function(j,k){var i=false;if(k.value==g){if(h==((g+Math.pow(g,2))/2)){i=true;f.slider("option","disabled",true);if(b.val().length!=e.length){$.post("captcha.php",{tokenCaptcha:b.val()},function(m){var l="";$.each(e,function(){l+=m.charAt(this%m.length)});b.val(l);d.removeAttr("disabled")})}}}if(!i){h=c=0;f.slider("option","value",h)}}})});
+	</script>
+<?php
+}
+//END - FluxBB Jquery Captcha
+
 if (defined('PUN_ADMIN_CONSOLE'))
 {
 	if (file_exists(PUN_ROOT.'style/'.$pun_user['style'].'/base_admin.css'))
@@ -146,8 +164,7 @@ function process_form(the_form)
 
 // JavaScript tricks for IE6 and older
 echo '<!--[if lte IE 6]><script type="text/javascript" src="style/imports/minmax.js"></script><![endif]-->'."\n";
-echo '<script type="text/javascript" src="http://ohne-name.de/js/jQuery.js"></script>';
-echo '<script type="text/javascript" src="http://ohne-name.de/js/serverStatus.js"></script>';
+echo '<script type="text/javascript" src="http://ohne-name.de/js/serverStatus.js"></script>'."\n";
 
 if (isset($page_head))
 	echo implode("\n", $page_head)."\n";
