@@ -92,7 +92,7 @@ html, body, .pun table, .pun div, .pun form, .pun p, .pun h1, .pun h2, .pun h3, 
 }
 
 .pun em {
-	font-style: normal;
+	font-style: italic;
 }
 
 .pun a, .pun a:link, .pun a:visited {
@@ -906,6 +906,10 @@ MAIN POSTS
 
 .pun .blockpost .postmsg .postedit {
 	font-size: 0.857em;
+}
+
+.pun .blockpost .postmsg .postedit em {
+	font-style: normal;
 }
 
 .pun .blockform .postsignature, .pun .blockpost .postsignature {
