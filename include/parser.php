@@ -866,8 +866,6 @@ function do_bbcode($text, $is_signature = false)
 	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/profile.php?id=$1\', \'$2\')';
 	$replace[] = 'handle_mention(\'$1\')';
 
-	var_dump($pattern);
-
 	// This thing takes a while! :)
 	$text = preg_replace($pattern, $replace, $text);
 
