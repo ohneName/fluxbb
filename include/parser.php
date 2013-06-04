@@ -59,6 +59,10 @@ $smilies = array(
 	':rolleyes:' => 'roll.png',
 	':cool:' => 'cool.png');
 
+// All users cache
+// username => id
+$all_users = array();
+
 //
 // Make sure all BBCodes are lower case and do a little cleanup
 //
@@ -750,6 +754,33 @@ function handle_list_tag($content, $type = '*')
 	return '</p>'.$content.'<p>';
 }
 
+//
+// Make @mentions clickable
+//
+function handle_mention($username)
+{
+
+	global $all_users, $db;
+
+	$username = pun_trim($username, '@');
+
+	// Did we fetch them already?
+	if(empty($all_users))
+	{
+		$result = $db->query('SELECT `id`, `username` FROM `'.$db->prefix.'users`');
+		while($line = $result->fetch_assoc())
+		{
+			$all_users[$line['username']] = $line['id'];
+		}
+	}
+
+	if(array_key_exists($username, $all_users))
+		return handle_url_tag(get_base_url(true).'/profile.php?id='.$all_users[$username], '@'.$username);
+	else
+		return '@'.$username;
+
+}
+
 
 //
 // Convert BBCodes to their HTML equivalent
@@ -761,13 +792,14 @@ function do_bbcode($text, $is_signature = false)
 	if (strpos($text, '[quote') !== false)
 	{
 		$text = preg_replace('%\[quote\]\s*%', '</p><div class="quotebox"><blockquote><div><p>', $text);
-		$text = preg_replace_callback('%\[quote=(&quot;|&\#039;|"|\'|)(.*?)\\1\]%s', create_function('$matches', 'global $lang_common; return "</p><div class=\"quotebox\"><cite>".str_replace(array(\'[\', \'\\"\'), array(\'&#91;\', \'"\'), $matches[2])." ".$lang_common[\'wrote\']."</cite><blockquote><div><p>";'), $text);
+		$text = preg_replace('%\[quote=(&quot;|&\#039;|"|\'|)(.*?)\\1\]%se', '"</p><div class=\"quotebox\"><cite>".str_replace(array(\'[\', \'\\"\'), array(\'&#91;\', \'"\'), \'$2\')." ".$lang_common[\'wrote\']."</cite><blockquote><div><p>"', $text);
 		$text = preg_replace('%\s*\[\/quote\]%S', '</p></div></blockquote></div><p>', $text);
 	}
+
 	if (!$is_signature)
 	{
-		$pattern_callback[] = $re_list;
-		$replace_callback[] = 'handle_list_tag($matches[2], $matches[1])';
+		$pattern[] = $re_list;
+		$replace[] = 'handle_list_tag(\'$2\', \'$1\')';
 	}
 
 	$pattern[] = '%\[b\](.*?)\[/b\]%ms';
@@ -792,53 +824,53 @@ function do_bbcode($text, $is_signature = false)
 
 	if (($is_signature && $pun_config['p_sig_img_tag'] == '1') || (!$is_signature && $pun_config['p_message_img_tag'] == '1'))
 	{
-		$pattern_callback[] = '%\[img\]((ht|f)tps?://)([^\s<"]*?)\[/img\]%';
-		$pattern_callback[] = '%\[img=([^\[]*?)\]((ht|f)tps?://)([^\s<"]*?)\[/img\]%';
+		$pattern[] = '%\[img\]((ht|f)tps?://)([^\s<"]*?)\[/img\]%e';
+		$pattern[] = '%\[img=([^\[]*?)\]((ht|f)tps?://)([^\s<"]*?)\[/img\]%e';
 		if ($is_signature)
 		{
-			$replace_callback[] = 'handle_img_tag($matches[1].$matches[3], true)';
-			$replace_callback[] = 'handle_img_tag($matches[2].$matches[4], true, $matches[1])';
+			$replace[] = 'handle_img_tag(\'$1$3\', true)';
+			$replace[] = 'handle_img_tag(\'$2$4\', true, \'$1\')';
 		}
 		else
 		{
-			$replace_callback[] = 'handle_img_tag($matches[1].$matches[3], false)';
-			$replace_callback[] = 'handle_img_tag($matches[2].$matches[4], false, $matches[1])';
+			$replace[] = 'handle_img_tag(\'$1$3\', false)';
+			$replace[] = 'handle_img_tag(\'$2$4\', false, \'$1\')';
 		}
 	}
 
-	$pattern_callback[] = '%\[url\]([^\[]*?)\[/url\]%';
-	$pattern_callback[] = '%\[url=([^\[]+?)\](.*?)\[/url\]%';
+	$pattern[] = '%\[url\]([^\[]*?)\[/url\]%e';
+	$pattern[] = '%\[url=([^\[]+?)\](.*?)\[/url\]%e';
 	$pattern[] = '%\[email\]([^\[]*?)\[/email\]%';
 	$pattern[] = '%\[email=([^\[]+?)\](.*?)\[/email\]%';
-	$pattern_callback[] = '%\[topic\]([1-9]\d*)\[/topic\]%';
-	$pattern_callback[] = '%\[topic=([1-9]\d*)\](.*?)\[/topic\]%';
-	$pattern_callback[] = '%\[post\]([1-9]\d*)\[/post\]%';
-	$pattern_callback[] = '%\[post=([1-9]\d*)\](.*?)\[/post\]%';
-	$pattern_callback[] = '%\[forum\]([1-9]\d*)\[/forum\]%';
-	$pattern_callback[] = '%\[forum=([1-9]\d*)\](.*?)\[/forum\]%';
-	$pattern_callback[] = '%\[user\]([1-9]\d*)\[/user\]%';
-	$pattern_callback[] = '%\[user=([1-9]\d*)\](.*?)\[/user\]%';
+	$pattern[] = '%\[topic\]([1-9]\d*)\[/topic\]%e';
+	$pattern[] = '%\[topic=([1-9]\d*)\](.*?)\[/topic\]%e';
+	$pattern[] = '%\[post\]([1-9]\d*)\[/post\]%e';
+	$pattern[] = '%\[post=([1-9]\d*)\](.*?)\[/post\]%e';
+	$pattern[] = '%\[forum\]([1-9]\d*)\[/forum\]%e';
+	$pattern[] = '%\[forum=([1-9]\d*)\](.*?)\[/forum\]%e';
+	$pattern[] = '%\[user\]([1-9]\d*)\[/user\]%e';
+	$pattern[] = '%\[user=([1-9]\d*)\](.*?)\[/user\]%e';
+	$pattern[] = '%\@([^\s\[\]\'\":,;\.\?]{2,})%e';
 
-	$replace_callback[] = 'handle_url_tag($matches[1])';
-	$replace_callback[] = 'handle_url_tag($matches[1], $matches[2])';
+	$replace[] = 'handle_url_tag(\'$1\')';
+	$replace[] = 'handle_url_tag(\'$1\', \'$2\')';
 	$replace[] = '<a href="mailto:$1">$1</a>';
 	$replace[] = '<a href="mailto:$1">$2</a>';
-	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?id=.$matches[1]\')';
-	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?id=.$matches[1],$matches[2]\')';
-	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?pid=.$matches[1].#p.$matches[1]\')';
-	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?pid=.$matches[1].#p.$matches[1],$matches[2]\')';
-	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewforum.php?id=.$matches[1]\')';
-	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/viewforum.php?id=.$matches[1],$matches[2]\')';
-	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/profile.php?id=.$matches[1]\')';
-	$replace_callback[] = 'handle_url_tag(\''.get_base_url(true).'/profile.php?id=.$matches[1],$matches[2]\')';
+	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?id=$1\')';
+	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?id=$1\', \'$2\')';
+	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?pid=$1#p$1\')';
+	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewtopic.php?pid=$1#p$1\', \'$2\')';
+	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewforum.php?id=$1\')';
+	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewforum.php?id=$1\', \'$2\')';
+	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/profile.php?id=$1\')';
+	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/profile.php?id=$1\', \'$2\')';
+	$replace[] = 'handle_mention(\'$1\')';
+
+	var_dump($pattern);
 
 	// This thing takes a while! :)
 	$text = preg_replace($pattern, $replace, $text);
-	$count = count($pattern_callback);
-	for($i = 0 ; $i < $count ; $i++)
-	{
-		$text = preg_replace_callback($pattern_callback[$i], create_function('$matches', 'return '.$replace_callback[$i].';'), $text);
-	}
+
 	return $text;
 }
 
@@ -892,7 +924,7 @@ function parse_message($text, $hide_smilies)
 	if (strpos($text, '[code]') !== false && strpos($text, '[/code]') !== false)
 		list($inside, $text) = extract_blocks($text, '[code]', '[/code]');
 
-	if ($pun_config['p_message_bbcode'] == '1' && strpos($text, '[') !== false && strpos($text, ']') !== false)
+	if ($pun_config['p_message_bbcode'] == '1' && ((strpos($text, '[') !== false && strpos($text, ']') !== false) || strpos($text, '@') !== false))
 		$text = do_bbcode($text);
 
 	if ($pun_config['o_smilies'] == '1' && $pun_user['show_smilies'] == '1' && $hide_smilies == '0')
