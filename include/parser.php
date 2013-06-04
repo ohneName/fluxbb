@@ -850,7 +850,6 @@ function do_bbcode($text, $is_signature = false)
 	$pattern[] = '%\[forum=([1-9]\d*)\](.*?)\[/forum\]%e';
 	$pattern[] = '%\[user\]([1-9]\d*)\[/user\]%e';
 	$pattern[] = '%\[user=([1-9]\d*)\](.*?)\[/user\]%e';
-	$pattern[] = '%\@([^\s\[\]\'\":,;\.\?]{2,})%e';
 
 	$replace[] = 'handle_url_tag(\'$1\')';
 	$replace[] = 'handle_url_tag(\'$1\', \'$2\')';
@@ -864,7 +863,6 @@ function do_bbcode($text, $is_signature = false)
 	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/viewforum.php?id=$1\', \'$2\')';
 	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/profile.php?id=$1\')';
 	$replace[] = 'handle_url_tag(\''.get_base_url(true).'/profile.php?id=$1\', \'$2\')';
-	$replace[] = 'handle_mention(\'$1\')';
 
 	// This thing takes a while! :)
 	$text = preg_replace($pattern, $replace, $text);
@@ -881,6 +879,15 @@ function do_clickable($text)
 	$text = ' '.$text;
 	$text = ucp_preg_replace_callback('%(?<=[\s\]\)])(<)?(\[)?(\()?([\'"]?)(https?|ftp|news){1}://([\p{L}\p{N}\-]+\.([\p{L}\p{N}\-]+\.)*[\p{L}\p{N}]+(:[0-9]+)?(/(?:[^\s\[]*[^\s.,?!\[;:-])?)?)\4(?(3)(\)))(?(2)(\]))(?(1)(>))(?![^\s]*\[/(?:url|img)\])%ui', 'stripslashes($matches[1].$matches[2].$matches[3].$matches[4]).handle_url_tag($matches[5]."://".$matches[6], $matches[5]."://".$matches[6], true).stripslashes($matches[4].$matches[10].$matches[11].$matches[12])', $text);
 	$text = ucp_preg_replace_callback('%(?<=[\s\]\)])(<)?(\[)?(\()?([\'"]?)(www|ftp)\.(([\p{L}\p{N}\-]+\.)+[\p{L}\p{N}]+(:[0-9]+)?(/(?:[^\s\[]*[^\s.,?!\[;:-])?)?)\4(?(3)(\)))(?(2)(\]))(?(1)(>))(?![^\s]*\[/(?:url|img)\])%ui','stripslashes($matches[1].$matches[2].$matches[3].$matches[4]).handle_url_tag($matches[5].".".$matches[6], $matches[5].".".$matches[6], true).stripslashes($matches[4].$matches[10].$matches[11].$matches[12])', $text);
+
+	return substr($text, 1);
+}
+
+// Mentions
+function do_mentions($text)
+{
+	$text = ' '.$text;
+	$text = ucp_preg_replace_callback('%\@([^\s\[\]\'\":,;\.\?]{2,})%u', 'handle_mention($matches[1])', $text);
 
 	return substr($text, 1);
 }
@@ -922,8 +929,11 @@ function parse_message($text, $hide_smilies)
 	if (strpos($text, '[code]') !== false && strpos($text, '[/code]') !== false)
 		list($inside, $text) = extract_blocks($text, '[code]', '[/code]');
 
-	if ($pun_config['p_message_bbcode'] == '1' && ((strpos($text, '[') !== false && strpos($text, ']') !== false) || strpos($text, '@') !== false))
+	if ($pun_config['p_message_bbcode'] == '1' && strpos($text, '[') !== false && strpos($text, ']') !== false)
 		$text = do_bbcode($text);
+
+	if (strpos($text, '@') !== false)
+		$text = do_mentions($text);
 
 	if ($pun_config['o_smilies'] == '1' && $pun_user['show_smilies'] == '1' && $hide_smilies == '0')
 		$text = do_smilies($text);
